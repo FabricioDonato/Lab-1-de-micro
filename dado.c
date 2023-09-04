@@ -1,47 +1,91 @@
-#include <pic14/pic12f675.h>
- 
-//To compile:
-//sdcc -mpic14 -p12f683 dado.c
- 
-//To program the chip using picp:
-//Assuming /dev/ttyUSB0 is the serial port.
- 
-//Erase the chip:
-//picp /dev/ttyUSB0 12f683 -ef
- 
-//Write the program:
-//picp /dev/ttyUSB0 12f683 -wp dado.hex
- 
-//Write the configuration words (optional):
-//picp /dev/ttyUSB0 12f683 -wc 0x2ff4 0x3fff
- 
-//Doing it all at once: erasing, programming, and reading back config words:
-//picp /dev/ttyUSB0 12f683 -ef -wp dado.hex -rc
- 
-//To program the chip using pk2cmd:
-//pk2cmd -M -PPIC12f683 -Fdado.hex
+#include <pic14/pic12f683.h>
+
  
 void delay (unsigned inttiempo);
  
-void main(void)
-{
 
-    TRISIO = 0b00000010;  // Configurar GP0 como entrada (botón), GP1 como salida (LED1), GP2 a GP5 como salidas (otros LEDs)
-	GPIO = 0x00; //Poner pines en bajo
- 
-    unsigned int time = 100;
- 
-    //Loop forever
-    while ( 1 )
-    {
-			GP0 = 0x00;
-			delay(time);
-
-			GP0 = ~GP0;
-			delay(time);
+// Función de inicialización
+void main() {
+    // Configurar pines como entrada/salida
+    TRISIO = 0b00000001;  // Configurar GP0 como entrada (botón), GP1 como salida (LED1), GP2 a GP5 como salidas (otros LEDs)
+    GPIO = 0x00; //Poner pines en bajo
+   
+    
+    //contador para hacerlo random
+    unsigned int counter = 0;
+    unsigned int time = 1000;
+    
+    //loop
+    while (1) {
+    	counter++;
+	if (counter == 100){
+		counter = 0;
+	}
+		
+        if (GP0 == 0) {  // Si el botón está presionado (estado bajo)
+            // Realiza la acción deseada cuando se presiona el botón
+            unsigned int dado = (counter % 6) + 1; // Utilizar la función de ruido
+            if (dado == 1){
+            	GP2 = 0x01;
+		delay(time);
+		GP2 = ~GP2;
+            }
+            else if (dado == 2){
+            	GP1 = 0x01;
+		delay(time);
+		GP1 = ~GP1;
+		
+            }
+            else if (dado == 3){
+            	GP1 = 0x01;            	
+            	GP2 = 0x01;
+		delay(time);
+		GP1 = ~GP1;
+		GP2 = ~GP2;
+            }
+            else if (dado == 4){
+            	GP1 = 0x01;
+            	GP4 = 0x01;
+            	
+		delay(time);
+		GP1 = ~GP1;
+            	
+            	GP4 = ~GP4;
+            }
+            else if (dado == 5){
+            	GP1 = 0x01;
+            	GP2 = 0x01;
+            	
+            	GP4 = 0x01;
+		delay(time);
+		GP1 = ~GP1;
+		GP2 = ~GP2;
+		
+		GP4 = ~GP4;
+            }
+            else if (dado == 6){
+            	GP1 = 0x01;
+            	GP2 = 0x01;
+            	
+            	GP4 = 0x01;
+            	GP5 = 0x01;
+		delay(time);
+            	GP1 = ~GP1;
+		GP2 = ~GP2;
+		
+		GP4 = ~GP4;
+		GP5 = ~GP5;
+            }
+            // Esperar a que se suelte el botón
+            while (GP0 == 0);
+        }
     }
- 
+
+	
+
+
 }
+
 
 void delay(unsigned int tiempo)
 {
